@@ -29,7 +29,8 @@ class UserService
         $role = $data['role'] ?? UserRole::TeamMember->value;
 
         if ($actor->isManager() && $role !== UserRole::TeamMember->value) {
-            throw ApiException::make('Forbidden.', 403);
+            $message = 'Managers can only create users with the team member role.';
+            throw ApiException::make($message, 403);
         }
 
         return $this->userRepository->create([
@@ -53,7 +54,8 @@ class UserService
         $this->assertCanManageTarget($actor, $target);
 
         if ($actor->isManager() && isset($data['role']) && $data['role'] !== UserRole::TeamMember->value) {
-            throw ApiException::make('Forbidden.', 403);
+            $message = 'Managers can only assign the team member role.';
+            throw ApiException::make($message, 403);
         }
 
         return $this->userRepository->update($target, $data);
@@ -64,7 +66,8 @@ class UserService
         $this->assertCanManageTarget($actor, $target);
 
         if ($actor->id === $target->id) {
-            throw ApiException::make('You cannot deactivate your own account.', 422);
+            $message = 'You cannot deactivate your own account.';
+            throw ApiException::make($message, 422);
         }
 
         return $this->userRepository->toggleActiveStatus($target);
@@ -73,11 +76,13 @@ class UserService
     private function assertCanManageTarget(User $actor, User $target): void
     {
         if (! $actor->canManageUsers()) {
-            throw ApiException::make('Forbidden.', 403);
+            $message = 'You do not have permission to manage users.';
+            throw ApiException::make($message, 403);
         }
 
         if ($actor->isManager() && ! $target->isTeamMember()) {
-            throw ApiException::make('Forbidden.', 403);
+            $message = 'Managers can only manage team member accounts.';
+            throw ApiException::make($message, 403);
         }
     }
 }

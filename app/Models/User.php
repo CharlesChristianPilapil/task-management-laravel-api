@@ -99,7 +99,7 @@ class User extends Authenticatable implements JWTSubject
 
         if ($membership === null) {
             return null;
-        };
+        }
 
         return TeamMemberRole::from($membership->pivot->role);
     }

@@ -3,6 +3,7 @@
 use App\Exceptions\ApiException;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\VerifyInternalServiceKey;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'active' => EnsureUserIsActive::class,
+            'internal' => VerifyInternalServiceKey::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
@@ -38,13 +40,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (ValidationException $exception, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
-                return ApiResponse::error('Validation failed.', 422, $exception->errors());
+                return ApiResponse::error('The given data was invalid.', 422, $exception->errors());
             }
         });
 
         $exceptions->render(function (AuthenticationException $exception, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
-                return ApiResponse::error('Unauthenticated.', 401);
+                $message = 'Authentication is required to access this resource.';
+                return ApiResponse::error($message, 401);
             }
         });
 
@@ -63,13 +66,22 @@ return Application::configure(basePath: dirname(__DIR__))
                     return ApiResponse::error($message, 404);
                 }
 
-                return ApiResponse::error('Endpoint not found.', 404);
+                $message = 'The requested endpoint does not exist.';
+                return ApiResponse::error($message, 404);
             }
         });
 
         $exceptions->render(function (MethodNotAllowedHttpException $exception, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
-                return ApiResponse::error('Method not allowed.', 405);
+                $message = 'The HTTP method used is not allowed for this endpoint.';
+                return ApiResponse::error($message, 405);
+            }
+        });
+
+        $exceptions->render(function (Throwable $exception, Request $request) {
+            if (($request->is('api/*') || $request->expectsJson()) && ! app()->hasDebugModeEnabled()) {
+                $message = 'An unexpected error occurred. Please try again later.';
+                return ApiResponse::error($message, 500);
             }
         });
     })->create();

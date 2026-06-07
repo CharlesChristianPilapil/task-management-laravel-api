@@ -14,7 +14,14 @@ class StoreTeamRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'unique:teams,name'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.unique' => 'A team with this name already exists.',
         ];
     }
 }

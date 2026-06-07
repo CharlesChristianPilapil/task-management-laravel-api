@@ -15,6 +15,7 @@ class TaskService
 {
     public function __construct(
         private TaskRepositoryInterface $taskRepository,
+        private NotificationService $notificationService,
     ) {}
 
     public function listTeamTasks(User $actor, Team $team, TaskListFilters $filters, int $perPage): LengthAwarePaginator
@@ -43,7 +44,13 @@ class TaskService
             'team_id' => $team->id,
         ]);
 
-        return $this->taskRepository->findWithRelations($task);
+        $task = $this->taskRepository->findWithRelations($task);
+
+        if ($task->assigned_to !== null) {
+            $this->notificationService->queueAssigned($task->id, $task->assigned_to);
+        }
+
+        return $task;
     }
 
     public function getTask(User $actor, Task $task): Task
@@ -61,7 +68,21 @@ class TaskService
             $this->assertAssigneeBelongsToTeam($task->team, (int) $data['assigned_to']);
         }
 
-        return $this->taskRepository->update($task, $data);
+        $previousAssigneeId = $task->assigned_to;
+        $updatedTask = $this->taskRepository->update($task, $data);
+
+        if (
+            isset($data['assigned_to'])
+            && $updatedTask->assigned_to !== null
+            && $updatedTask->assigned_to !== $previousAssigneeId
+        ) {
+            $this->notificationService->queueAssigned(
+                $updatedTask->id,
+                $updatedTask->assigned_to,
+            );
+        }
+
+        return $updatedTask;
     }
 
     public function updateTaskStatus(User $actor, Task $task, string $status): Task
@@ -71,10 +92,30 @@ class TaskService
         $newStatus = TaskStatus::from($status);
 
         if (! $task->status->canTransitionTo($newStatus)) {
-            throw ApiException::make('Invalid status transition.', 422);
+            throw ApiException::make(
+                sprintf(
+                    'Cannot change task status from %s to %s.',
+                    $task->status->label(),
+                    $newStatus->label(),
+                ),
+                422,
+            );
         }
 
-        return $this->taskRepository->update($task, ['status' => $newStatus->value]);
+        $previousStatusLabel = $task->status->label();
+        $updatedTask = $this->taskRepository->update($task, ['status' => $newStatus->value]);
+
+        if ($updatedTask->assigned_to !== null) {
+            $this->notificationService->queueStatusChanged(
+                $updatedTask->id,
+                $updatedTask->assigned_to,
+                [
+                    'previous_status_label' => $previousStatusLabel,
+                ],
+            );
+        }
+
+        return $updatedTask;
     }
 
     public function deleteTask(User $actor, Task $task): void
@@ -87,7 +128,8 @@ class TaskService
     private function assertCanAccessTeam(User $actor, Team $team): void
     {
         if (! $actor->belongsToTeam($team)) {
-            throw ApiException::make('Forbidden.', 403);
+            $message = 'You are not a member of this team.';
+            throw ApiException::make($message, 403);
         }
     }
 
@@ -96,7 +138,7 @@ class TaskService
         $this->assertCanAccessTeam($actor, $task->team);
 
         if ($actor->isTeamMember() && $task->assigned_to !== $actor->id) {
-            throw ApiException::make('Forbidden.', 403);
+            throw ApiException::make('You can only access tasks assigned to you.', 403);
         }
     }
 
@@ -108,7 +150,8 @@ class TaskService
     private function assertCanDeleteTask(User $actor, Task $task): void
     {
         if (! $actor->isAdmin() && $task->created_by !== $actor->id) {
-            throw ApiException::make('Forbidden.', 403);
+            $message = 'Only the task creator or an admin can delete this task.';
+            throw ApiException::make($message, 403);
         }
     }
 
@@ -117,7 +160,8 @@ class TaskService
         $isMember = $team->members()->where('users.id', $userId)->exists();
 
         if (! $isMember) {
-            throw ApiException::make('The selected assignee is not a member of this team.', 422);
+            $message = 'The selected assignee is not a member of this team.';
+            throw ApiException::make($message, 422);
         }
     }
 }

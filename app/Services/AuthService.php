@@ -32,7 +32,7 @@ class AuthService
     public function login(array $credentials): AuthTokenData
     {
         if (! $token = $this->guard->attempt($credentials)) {
-            throw ApiException::make('Invalid credentials.', 401);
+            throw ApiException::make('Invalid email or password.', 401);
         }
 
         $user = $this->guard->user();
