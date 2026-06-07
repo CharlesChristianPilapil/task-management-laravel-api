@@ -1,9 +1,11 @@
 <?php
 
+use App\Exceptions\ApiException;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -28,6 +30,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (ApiException $exception, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return $exception->render();
+            }
+        });
+
         $exceptions->render(function (ValidationException $exception, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 return ApiResponse::error('Validation failed.', 422, $exception->errors());
@@ -42,6 +50,19 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (NotFoundHttpException $exception, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
+                $previous = $exception->getPrevious();
+
+                if ($previous instanceof ModelNotFoundException) {
+                    $message = match (class_basename($previous->getModel())) {
+                        'User' => 'User does not exist.',
+                        'Task' => 'Task does not exist.',
+                        'Team' => 'Team does not exist.',
+                        default => 'Resource not found.',
+                    };
+
+                    return ApiResponse::error($message, 404);
+                }
+
                 return ApiResponse::error('Endpoint not found.', 404);
             }
         });

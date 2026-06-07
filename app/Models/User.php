@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\TeamMemberRole;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
@@ -66,5 +69,48 @@ class User extends Authenticatable implements JWTSubject
     public function canManageUsers(): bool
     {
         return $this->isAdmin() || $this->isManager();
+    }
+
+    public function teams(): BelongsToMany
+    {
+        $teams = $this->belongsToMany(Team::class, 'team_members');
+
+        return $teams->withPivot('role')->withTimestamps();
+    }
+
+    public function assignedTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assigned_to');
+    }
+
+    public function createdTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'created_by');
+    }
+
+    public function belongsToTeam(Team $team): bool
+    {
+        return $this->teams()->where('teams.id', $team->id)->exists();
+    }
+
+    public function teamMemberRole(Team $team): ?TeamMemberRole
+    {
+        $membership = $this->teams()->where('teams.id', $team->id)->first();
+
+        if ($membership === null) {
+            return null;
+        };
+
+        return TeamMemberRole::from($membership->pivot->role);
+    }
+
+    public function isTeamLead(Team $team): bool
+    {
+        return $this->teamMemberRole($team) === TeamMemberRole::Lead;
+    }
+
+    public function canManageTeamMembers(Team $team): bool
+    {
+        return $this->isAdmin() || $this->isTeamLead($team);
     }
 }
