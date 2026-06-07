@@ -31,4 +31,11 @@ return [
         ],
     ],
 
+    'node' => [
+        'url' => env('NODE_SERVICE_URL'),
+    ],
+
+    'internal' => [
+        'service_key' => env('INTERNAL_SERVICE_KEY'),
+    ],
 ];
