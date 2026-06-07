@@ -3,7 +3,6 @@
 namespace App\Http\Responses;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class ApiResponse
@@ -32,7 +31,6 @@ class ApiResponse
         string $resourceClass,
         string $key,
     ): array {
-        /** @var JsonResource $resourceClass */
         return [
             $key => $resourceClass::collection($paginator)->resolve(),
             'pagination' => self::pagination($paginator),

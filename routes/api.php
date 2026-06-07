@@ -2,13 +2,21 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InternalNotificationController;
+use App\Http\Controllers\SchedulerController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('internal')->prefix('internal')->group(function () {
-    Route::get('/notifications/{task}/{user}', [InternalNotificationController::class, 'show']);
+Route::middleware('internal')->group(function () {
+    Route::prefix('internal')->group(function () {
+        Route::get('/notifications/{task}/{user}', [InternalNotificationController::class, 'show']);
+        Route::get('/scheduler/daily-digest', [SchedulerController::class, 'dailyDigest']);
+        Route::get('/scheduler/deadline-reminders', [SchedulerController::class, 'deadlineReminders']);
+        Route::get('/scheduler/stale-cancelled-tasks', [SchedulerController::class, 'staleCancelledTasks']);
+    });
+
+    Route::delete('/tasks/{task}/archive', [SchedulerController::class, 'archive']);
 });
 
 Route::prefix('auth')->group(function () {
