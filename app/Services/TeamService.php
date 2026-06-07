@@ -46,7 +46,8 @@ class TeamService
         $user = User::findOrFail($data['user_id']);
 
         if ($team->hasMember($user)) {
-            throw ApiException::make('User is already a member of this team.', 422);
+            $message = 'User is already a member of this team.';
+            throw ApiException::make($message, 422);
         }
 
         $role = $data['role'] ?? TeamMemberRole::Member->value;
@@ -61,11 +62,13 @@ class TeamService
         $this->assertCanManageTeamMembers($actor, $team);
 
         if (! $team->hasMember($member)) {
-            throw ApiException::make('User is not a member of this team.', 422);
+            $message = 'User is not a member of this team.';
+            throw ApiException::make($message, 422);
         }
 
         if ($team->created_by === $member->id && $team->memberRole($member) === TeamMemberRole::Lead) {
-            throw ApiException::make('The team owner cannot be removed.', 422);
+            $message = 'The team owner cannot be removed.';
+            throw ApiException::make($message, 422);
         }
 
         $this->teamRepository->detachMember($team, $member);
@@ -80,14 +83,16 @@ class TeamService
         }
 
         if (! $actor->belongsToTeam($team)) {
-            throw ApiException::make('Forbidden.', 403);
+            $message = 'You are not a member of this team.';
+            throw ApiException::make($message, 403);
         }
     }
 
     private function assertCanManageTeamMembers(User $actor, Team $team): void
     {
         if (! $actor->canManageTeamMembers($team)) {
-            throw ApiException::make('Forbidden.', 403);
+            $message = 'Only team leads and admins can manage team members.';
+            throw ApiException::make($message, 403);
         }
     }
 }

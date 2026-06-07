@@ -15,13 +15,16 @@ class RoleMiddleware
         $user = $request->user();
 
         if (! $user) {
-            return ApiResponse::error('Unauthenticated.', 401);
+            $message = 'Authentication is required to access this resource.';
+            return ApiResponse::error($message, 401);
         }
 
         $allowedRoles = array_map(fn (string $role) => UserRole::from($role), $roles);
 
         if (! in_array($user->role, $allowedRoles, true)) {
-            return ApiResponse::error('Forbidden.', 403);
+            $requiredRoles = implode(', ', $roles);
+            $message = "You do not have permission to access this resource. Required role: {$requiredRoles}.";
+            return ApiResponse::error($message, 403);
         }
 
         return $next($request);
