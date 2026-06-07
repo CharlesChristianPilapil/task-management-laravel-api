@@ -18,10 +18,7 @@ class RoleMiddleware
             return ApiResponse::error('Unauthenticated.', 401);
         }
 
-        $allowedRoles = array_map(
-            fn (string $role) => UserRole::from($role),
-            $roles
-        );
+        $allowedRoles = array_map(fn (string $role) => UserRole::from($role), $roles);
 
         if (! in_array($user->role, $allowedRoles, true)) {
             return ApiResponse::error('Forbidden.', 403);
