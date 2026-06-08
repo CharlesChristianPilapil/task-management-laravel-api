@@ -32,11 +32,9 @@ Primary REST API for the **Task Management & Analytics Platform**. Built with **
 
 | Service | URL |
 |---------|-----|
-| **Laravel API (this repo)** | `https://your-laravel-app.onrender.com/api` |
-| **Node.js Services** | `https://your-node-app.onrender.com` |
-| **Health check** | `GET /up` |
-
-> Replace the placeholder URLs above with your deployed endpoints before submission.
+| **Laravel API (this repo)** | [https://task-management-laravel-api-u2v9.onrender.com/api](https://task-management-laravel-api-u2v9.onrender.com/api) |
+| **Node.js Services** | [https://task-management-node-services-g5ie.onrender.com](https://task-management-node-services-g5ie.onrender.com) |
+| **Health check** | [GET /up](https://task-management-laravel-api-u2v9.onrender.com/up) |
 
 ---
 
@@ -564,7 +562,7 @@ php artisan test
    - `DB_CONNECTION=pgsql`
    - `DATABASE_URL=<internal database URL>`
    - `APP_KEY`, `JWT_SECRET`, `INTERNAL_SERVICE_KEY`
-   - `NODE_SERVICE_URL=<your Node.js service URL>`
+   - `NODE_SERVICE_URL=https://task-management-node-services-g5ie.onrender.com`
    - `APP_ENV=production`, `APP_DEBUG=false`
    - `MAIL_MAILER=log` *(current Render config — SMTP not used)*
 4. Deploy — the startup script runs `composer install`, caches config/routes, and executes `php artisan migrate --force`.
@@ -576,7 +574,7 @@ php artisan test
    php artisan db:seed --force
    ```
 
-6. Update the [Live URLs](#live-urls) section in this README.
+6. Confirm [Live URLs](#live-urls) match your deployed endpoints.
 
 ### Production checklist
 
@@ -614,7 +612,7 @@ Logs: `storage/logs/laravel.log` (local) or platform log stream (production).
 - [x] Authorization middleware on protected routes
 - [x] Error handling and validation
 - [x] Calls to Node.js service for notifications
-- [ ] Live URL added to README *(update before submission)*
+- [x] Live URL added to README
 
 ---
 
