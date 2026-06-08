@@ -50,6 +50,8 @@ Route::middleware(['auth:api', 'active'])->group(function () {
         Route::post('/tasks', [TaskController::class, 'store']);
     });
 
+    Route::get('/tasks/mine', [TaskController::class, 'mine']);
+
     Route::prefix('tasks/{task}')->group(function () {
         Route::get('/', [TaskController::class, 'show']);
         Route::patch('/', [TaskController::class, 'update']);

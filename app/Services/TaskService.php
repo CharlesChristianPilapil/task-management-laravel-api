@@ -25,6 +25,11 @@ class TaskService
         return $this->taskRepository->paginateForTeam($team, $actor, $filters, $perPage);
     }
 
+    public function listMyTasks(User $actor, int $perPage): LengthAwarePaginator
+    {
+        return $this->taskRepository->paginateForUser($actor, $perPage);
+    }
+
     public function createTask(User $actor, Team $team, array $data): Task
     {
         $this->assertCanCreateTask($actor, $team);

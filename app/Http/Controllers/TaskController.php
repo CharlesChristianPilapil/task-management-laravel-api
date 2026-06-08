@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTransferObjects\TaskListFilters;
+use App\Http\Requests\Task\ListMyTasksRequest;
 use App\Http\Requests\Task\ListTeamTasksRequest;
 use App\Http\Requests\Task\StoreTeamTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
@@ -21,6 +22,16 @@ class TaskController extends Controller
     public function __construct(
         private TaskService $taskService,
     ) {}
+
+    public function mine(ListMyTasksRequest $request): JsonResponse
+    {
+        $tasks = $this->taskService->listMyTasks(
+            $this->authenticatedUser($request),
+            $request->perPage(),
+        );
+
+        return ApiResponse::paginated($tasks, TaskResource::class, 'tasks', 'Your tasks retrieved successfully.');
+    }
 
     public function index(ListTeamTasksRequest $request, Team $team): JsonResponse
     {

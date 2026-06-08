@@ -31,5 +31,7 @@ interface TaskRepositoryInterface
 
     public function paginateForTeam(Team $team, User $actor, TaskListFilters $filters, int $perPage): LengthAwarePaginator;
 
+    public function paginateForUser(User $user, int $perPage): LengthAwarePaginator;
+
     public function findWithRelations(Task $task): Task;
 }

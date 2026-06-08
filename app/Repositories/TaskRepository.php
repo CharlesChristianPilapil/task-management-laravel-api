@@ -133,6 +133,17 @@ class TaskRepository implements TaskRepositoryInterface
         return $query->paginate($perPage);
     }
 
+    public function paginateForUser(User $user, int $perPage): LengthAwarePaginator
+    {
+        return Task::query()
+            ->where('assigned_to', $user->id)
+            ->with(['assignee', 'creator', 'team'])
+            ->orderByRaw('due_date IS NULL')
+            ->orderBy('due_date')
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+    }
+
     public function findWithRelations(Task $task): Task
     {
         return $task->fresh(['assignee', 'creator', 'team']);
