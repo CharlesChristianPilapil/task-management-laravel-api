@@ -127,6 +127,8 @@ class TaskService
 
     private function assertCanAccessTeam(User $actor, Team $team): void
     {
+        if ($actor->canManageUsers()) return;
+
         if (! $actor->belongsToTeam($team)) {
             $message = 'You are not a member of this team.';
             throw ApiException::make($message, 403);

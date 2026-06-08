@@ -12,8 +12,17 @@ class StoreTeamTaskRequest extends FormRequest
     public function authorize(): bool
     {
         $team = $this->route('team');
+        $user = $this->user();
 
-        return $team instanceof Team && ($this->user()?->belongsToTeam($team) ?? false);
+        if (! $team instanceof Team || $user === null) {
+            return false;
+        }
+
+        if ($user->canManageUsers()) {
+            return true;
+        }
+
+        return $user->belongsToTeam($team);
     }
 
     public function rules(): array
