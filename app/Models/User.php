@@ -111,6 +111,14 @@ class User extends Authenticatable implements JWTSubject
 
     public function canManageTeamMembers(Team $team): bool
     {
-        return $this->isAdmin() || $this->isTeamLead($team);
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if ($this->isManager() && $this->belongsToTeam($team)) {
+            return true;
+        }
+
+        return $this->isTeamLead($team);
     }
 }

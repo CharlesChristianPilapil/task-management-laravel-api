@@ -15,10 +15,16 @@ class UserService
         private UserRepositoryInterface $userRepository,
     ) {}
 
-    public function listUsers(UserListFilters $filters, int $perPage): LengthAwarePaginator
+    public function listUsers(User $actor, UserListFilters $filters, int $perPage): LengthAwarePaginator
     {
+        $role = $filters->role;
+
+        if ($actor->isManager()) {
+            $role = UserRole::TeamMember->value;
+        }
+
         return $this->userRepository->paginate(
-            role: $filters->role,
+            role: $role,
             isActive: $filters->isActiveFilter(),
             perPage: $perPage,
         );

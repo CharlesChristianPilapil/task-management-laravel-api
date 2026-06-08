@@ -27,7 +27,7 @@ class TaskRepository implements TaskRepositoryInterface
 
     public function delete(Task $task): void
     {
-        $task->forceDelete();
+        $task->delete();
     }
 
     public function archive(Task $task): void

@@ -18,7 +18,11 @@ class StoreTeamTaskRequest extends FormRequest
             return false;
         }
 
-        if ($user->canManageUsers()) {
+        if (! $user->canManageUsers()) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
             return true;
         }
 

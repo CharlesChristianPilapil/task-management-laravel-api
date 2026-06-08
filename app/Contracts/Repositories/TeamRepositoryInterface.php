@@ -10,7 +10,7 @@ interface TeamRepositoryInterface
 {
     public function create(array $attributes): Team;
 
-    public function paginate(int $perPage): LengthAwarePaginator;
+    public function paginate(int $perPage, ?User $actor = null): LengthAwarePaginator;
 
     public function findWithRelations(Team $team): Team;
 

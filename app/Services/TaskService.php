@@ -27,7 +27,7 @@ class TaskService
 
     public function createTask(User $actor, Team $team, array $data): Task
     {
-        $this->assertCanAccessTeam($actor, $team);
+        $this->assertCanCreateTask($actor, $team);
 
         if (isset($data['assigned_to'])) {
             $this->assertAssigneeBelongsToTeam($team, (int) $data['assigned_to']);
@@ -63,6 +63,10 @@ class TaskService
     public function updateTask(User $actor, Task $task, array $data): Task
     {
         $this->assertCanEditTask($actor, $task);
+
+        if ($actor->isTeamMember() && array_key_exists('assigned_to', $data)) {
+            throw ApiException::make('You cannot assign tasks to others.', 403);
+        }
 
         if (isset($data['assigned_to'])) {
             $this->assertAssigneeBelongsToTeam($task->team, (int) $data['assigned_to']);
@@ -125,9 +129,20 @@ class TaskService
         $this->taskRepository->delete($task);
     }
 
+    private function assertCanCreateTask(User $actor, Team $team): void
+    {
+        if (! $actor->canManageUsers()) {
+            throw ApiException::make('Only admins and managers can create tasks.', 403);
+        }
+
+        if (! $actor->isAdmin() && ! $actor->belongsToTeam($team)) {
+            throw ApiException::make('You are not a member of this team.', 403);
+        }
+    }
+
     private function assertCanAccessTeam(User $actor, Team $team): void
     {
-        if ($actor->canManageUsers()) return;
+        if ($actor->isAdmin()) return;
 
         if (! $actor->belongsToTeam($team)) {
             $message = 'You are not a member of this team.';
@@ -151,6 +166,10 @@ class TaskService
 
     private function assertCanDeleteTask(User $actor, Task $task): void
     {
+        if ($actor->isTeamMember()) {
+            throw ApiException::make('Team members cannot delete tasks.', 403);
+        }
+
         if (! $actor->isAdmin() && $task->created_by !== $actor->id) {
             $message = 'Only the task creator or an admin can delete this task.';
             throw ApiException::make($message, 403);

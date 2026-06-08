@@ -23,7 +23,10 @@ class TeamController extends Controller
 
     public function index(ListTeamsRequest $request): JsonResponse
     {
-        $teams = $this->teamService->listTeams($request->perPage());
+        $teams = $this->teamService->listTeams(
+            $this->authenticatedUser($request),
+            $request->perPage(),
+        );
 
         return ApiResponse::paginated($teams, TeamResource::class, 'teams', 'Teams retrieved successfully.');
     }

@@ -19,7 +19,7 @@ class ListTeamTasksRequest extends FormRequest
             return false;
         }
 
-        if ($user->canManageUsers()) {
+        if ($user->isAdmin()) {
             return true;
         }
 

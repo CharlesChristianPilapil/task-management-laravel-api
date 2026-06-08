@@ -31,27 +31,21 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware(['auth:api', 'active'])->group(function () {
 
-    Route::middleware('role:admin')->group(function () {
-        Route::patch('/users/{user}/status', [UserController::class, 'toggleStatus']);
-        Route::post('/teams', [TeamController::class, 'store']);
-    });
-
     Route::middleware('role:admin,manager')->group(function () {
         Route::get('/users', [UserController::class, 'index']);
         Route::post('/users', [UserController::class, 'store']);
         Route::get('/users/{user}', [UserController::class, 'show']);
         Route::patch('/users/{user}', [UserController::class, 'update']);
+        Route::patch('/users/{user}/status', [UserController::class, 'toggleStatus']);
         Route::get('/teams', [TeamController::class, 'index']);
+        Route::post('/teams', [TeamController::class, 'store']);
     });
 
     Route::get('/teams/{team}', [TeamController::class, 'show']);
 
-    Route::middleware('role:admin,manager')->prefix('teams/{team}')->group(function () {
+    Route::prefix('teams/{team}')->group(function () {
         Route::post('/members', [TeamController::class, 'addMember']);
         Route::delete('/members/{user}', [TeamController::class, 'removeMember']);
-    });
-
-    Route::prefix('teams/{team}')->group(function () {
         Route::get('/tasks', [TaskController::class, 'index']);
         Route::post('/tasks', [TaskController::class, 'store']);
     });

@@ -26,7 +26,11 @@ class UserController extends Controller
             status: $request->validated('status'),
         );
 
-        $users = $this->userService->listUsers($filters, $request->perPage());
+        $users = $this->userService->listUsers(
+            $this->authenticatedUser($request),
+            $filters,
+            $request->perPage(),
+        );
 
         return ApiResponse::paginated($users, UserResource::class, 'users', 'Users retrieved successfully.');
     }

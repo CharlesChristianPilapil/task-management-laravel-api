@@ -14,13 +14,20 @@ class TeamRepository implements TeamRepositoryInterface
         return Team::create($attributes);
     }
 
-    public function paginate(int $perPage): LengthAwarePaginator
+    public function paginate(int $perPage, ?User $actor = null): LengthAwarePaginator
     {
-        return Team::query()
+        $query = Team::query()
             ->with('creator')
             ->withCount('members')
-            ->orderBy('name')
-            ->paginate($perPage);
+            ->orderBy('name');
+
+        if ($actor !== null && $actor->isManager()) {
+            $query->whereHas('members', function ($members) use ($actor) {
+                $members->where('users.id', $actor->id);
+            });
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function findWithRelations(Team $team): Team

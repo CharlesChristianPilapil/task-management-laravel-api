@@ -15,9 +15,9 @@ class TeamService
         private TeamRepositoryInterface $teamRepository,
     ) {}
 
-    public function listTeams(int $perPage): LengthAwarePaginator
+    public function listTeams(User $actor, int $perPage): LengthAwarePaginator
     {
-        return $this->teamRepository->paginate($perPage);
+        return $this->teamRepository->paginate($perPage, $actor);
     }
 
     public function createTeam(User $actor, array $data): Team
@@ -78,7 +78,7 @@ class TeamService
 
     private function assertCanViewTeam(User $actor, Team $team): void
     {
-        if ($actor->canManageUsers()) {
+        if ($actor->isAdmin()) {
             return;
         }
 
