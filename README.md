@@ -8,7 +8,6 @@ Primary REST API for the **Task Management & Analytics Platform**. Built with **
 
 - [Live URLs](#live-urls)
 - [Production note (Render)](#production-note-render)
-- [Architecture](#architecture)
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Quick Start (Local)](#quick-start-local)
@@ -24,7 +23,6 @@ Primary REST API for the **Task Management & Analytics Platform**. Built with **
 - [Running Tests](#running-tests)
 - [Deployment](#deployment)
 - [Troubleshooting](#troubleshooting)
-- [Submission Checklist](#submission-checklist)
 
 ---
 
@@ -55,36 +53,6 @@ Primary REST API for the **Task Management & Analytics Platform**. Built with **
 - Scheduled jobs (daily digest, deadline reminders, task cleanup) do not run.
 
 All notification and scheduler **logic is implemented and testable locally**. See the [Node.js README](https://github.com/your-username/task-management-node-services#production-note-render) for re-enable steps.
-
----
-
-## Architecture
-
-```mermaid
-flowchart TB
-    subgraph Client
-        React[React Frontend]
-    end
-
-    subgraph Backends
-        Laravel[Laravel API :8000]
-        Node[Node.js Services :3000]
-    end
-
-    DB[(MySQL / PostgreSQL)]
-
-    React -->|JWT Bearer| Laravel
-    React -->|JWT Bearer| Node
-    Laravel -->|POST /api/notifications/send| Node
-    Node -->|GET /api/internal/*| Laravel
-    Laravel --> DB
-```
-
-| Layer | Responsibility |
-|-------|----------------|
-| **Laravel API** | Auth, users, teams, tasks, RBAC, database writes |
-| **Node.js Services** | Email notifications, analytics, exports, cron jobs |
-| **Database** | Shared relational store (Laravel owns schema via migrations) |
 
 ---
 
@@ -221,6 +189,23 @@ Additional seeded team members use `@mailinator.com` addresses with the same pas
 ---
 
 ## Database
+
+### Supabase PostgreSQL (production)
+
+Use these values in `.env` when connecting to the hosted Supabase database:
+
+```env
+DB_CONNECTION=pgsql
+DB_URL="postgresql://postgres.psktdbpwrlolactmoxng:GW3LBxioRys9U0kJ@aws-1-ap-southeast-2.pooler.supabase.com:5432/postgres?sslmode=require"
+DB_HOST=aws-1-ap-southeast-2.pooler.supabase.com
+DB_PORT=5432
+DB_DATABASE=postgres
+DB_USERNAME=postgres.psktdbpwrlolactmoxng
+DB_PASSWORD=GW3LBxioRys9U0kJ
+DB_SSLMODE=require
+```
+
+For local development, use MySQL (or another local database) instead — see [Quick Start (Local)](#quick-start-local).
 
 ### Schema overview
 
@@ -599,20 +584,6 @@ php artisan test
 | Migration failures | Run `php artisan migrate:fresh --seed` on a fresh database (dev only) |
 
 Logs: `storage/logs/laravel.log` (local) or platform log stream (production).
-
----
-
-## Submission Checklist
-
-- [x] README with local setup steps
-- [x] `.env.example` with all required variables
-- [x] Migrations and seeders
-- [x] JWT authentication configured
-- [x] All API endpoints implemented
-- [x] Authorization middleware on protected routes
-- [x] Error handling and validation
-- [x] Calls to Node.js service for notifications
-- [x] Live URL added to README
 
 ---
 
