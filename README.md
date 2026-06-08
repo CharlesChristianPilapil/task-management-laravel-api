@@ -30,6 +30,7 @@ Primary REST API for the **Task Management & Analytics Platform**. Built with **
 
 | Service | URL |
 |---------|-----|
+| **React Frontend** | [https://task-management-react-exam-1gnmeomqi.vercel.app](https://task-management-react-exam-1gnmeomqi.vercel.app) |
 | **Laravel API (this repo)** | [https://task-management-laravel-api-u2v9.onrender.com/api](https://task-management-laravel-api-u2v9.onrender.com/api) |
 | **Node.js Services** | [https://task-management-node-services-g5ie.onrender.com](https://task-management-node-services-g5ie.onrender.com) |
 | **Health check** | [GET /up](https://task-management-laravel-api-u2v9.onrender.com/up) |
