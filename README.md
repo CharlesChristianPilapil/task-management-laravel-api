@@ -192,16 +192,16 @@ Additional seeded team members use `@mailinator.com` addresses with the same pas
 
 ### Supabase PostgreSQL (production)
 
-Use these values in `.env` when connecting to the hosted Supabase database:
+Use these variables in `.env` when connecting to a hosted Supabase database. Copy the values from your Supabase project dashboard (Settings → Database) — do not commit real credentials to the repo.
 
 ```env
 DB_CONNECTION=pgsql
-DB_URL="postgresql://postgres.psktdbpwrlolactmoxng:GW3LBxioRys9U0kJ@aws-1-ap-southeast-2.pooler.supabase.com:5432/postgres?sslmode=require"
-DB_HOST=aws-1-ap-southeast-2.pooler.supabase.com
+DB_URL="postgresql://<username>:<password>@<host>:5432/<database>?sslmode=require"
+DB_HOST=<your-supabase-host>
 DB_PORT=5432
 DB_DATABASE=postgres
-DB_USERNAME=postgres.psktdbpwrlolactmoxng
-DB_PASSWORD=GW3LBxioRys9U0kJ
+DB_USERNAME=<your-supabase-username>
+DB_PASSWORD=<your-supabase-password>
 DB_SSLMODE=require
 ```
 
