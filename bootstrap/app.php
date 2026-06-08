@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\VerifyInternalServiceKey;
 use App\Http\Responses\ApiResponse;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -12,6 +13,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -49,6 +51,28 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*') || $request->expectsJson()) {
                 $message = 'Authentication is required to access this resource.';
                 return ApiResponse::error($message, 401);
+            }
+        });
+
+        $exceptions->render(function (AuthorizationException $exception, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                $message = $exception->getMessage();
+                if ($message === 'This action is unauthorized.') {
+                    $message = 'You do not have permission to perform this action.';
+                }
+
+                return ApiResponse::error($message, 403);
+            }
+        });
+
+        $exceptions->render(function (AccessDeniedHttpException $exception, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                $message = $exception->getMessage();
+                if ($message === '' || $message === 'This action is unauthorized.') {
+                    $message = 'You do not have permission to perform this action.';
+                }
+
+                return ApiResponse::error($message, 403);
             }
         });
 

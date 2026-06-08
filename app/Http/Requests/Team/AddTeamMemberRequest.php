@@ -2,13 +2,14 @@
 
 namespace App\Http\Requests\Team;
 
+use App\Http\Requests\ApiFormRequest;
 use App\Enums\TeamMemberRole;
+use App\Exceptions\ApiException;
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class AddTeamMemberRequest extends FormRequest
+class AddTeamMemberRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -16,10 +17,14 @@ class AddTeamMemberRequest extends FormRequest
         $user = $this->user();
 
         if (! $team instanceof Team || ! $user instanceof User) {
-            return false;
+            throw ApiException::make('Team context is required to manage members.', 403);
         }
 
-        return $user->canManageTeamMembers($team);
+        if (! $user->canManageTeamMembers($team)) {
+            throw ApiException::make('Only team leads and admins can manage team members.', 403);
+        }
+
+        return true;
     }
 
     public function rules(): array

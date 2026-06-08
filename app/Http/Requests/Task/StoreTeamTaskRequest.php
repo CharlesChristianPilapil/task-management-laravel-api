@@ -2,31 +2,37 @@
 
 namespace App\Http\Requests\Task;
 
+use App\Http\Requests\ApiFormRequest;
 use App\Enums\TaskPriority;
+use App\Exceptions\ApiException;
 use App\Models\Team;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\User;
 use Illuminate\Validation\Rule;
 
-class StoreTeamTaskRequest extends FormRequest
+class StoreTeamTaskRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
         $team = $this->route('team');
         $user = $this->user();
 
-        if (! $team instanceof Team || $user === null) {
-            return false;
+        if (! $team instanceof Team || ! $user instanceof User) {
+            throw ApiException::make('Team context is required to create a task.', 403);
         }
 
         if (! $user->canManageUsers()) {
-            return false;
+            throw ApiException::make('Only admins and managers can create tasks.', 403);
         }
 
         if ($user->isAdmin()) {
             return true;
         }
 
-        return $user->belongsToTeam($team);
+        if (! $user->belongsToTeam($team)) {
+            throw ApiException::make('You are not a member of this team.', 403);
+        }
+
+        return true;
     }
 
     public function rules(): array

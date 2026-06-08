@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Team;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\ApiFormRequest;
 
-class ShowTeamRequest extends FormRequest
+class ShowTeamRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {

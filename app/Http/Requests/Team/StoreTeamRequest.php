@@ -2,13 +2,18 @@
 
 namespace App\Http\Requests\Team;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\ApiFormRequest;
 
-class StoreTeamRequest extends FormRequest
+class StoreTeamRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
         return $this->user()?->canManageUsers() ?? false;
+    }
+
+    protected function authorizationMessage(): string
+    {
+        return 'Only admins and managers can create teams.';
     }
 
     public function rules(): array

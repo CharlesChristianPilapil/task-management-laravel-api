@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests\Task;
 
+use App\Http\Requests\ApiFormRequest;
 use App\Enums\TaskPriority;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateTaskRequest extends FormRequest
+class UpdateTaskRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {

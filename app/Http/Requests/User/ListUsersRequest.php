@@ -2,15 +2,20 @@
 
 namespace App\Http\Requests\User;
 
+use App\Http\Requests\ApiFormRequest;
 use App\Enums\UserRole;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class ListUsersRequest extends FormRequest
+class ListUsersRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
         return $this->user()?->canManageUsers() ?? false;
+    }
+
+    protected function authorizationMessage(): string
+    {
+        return 'Only admins and managers can list users.';
     }
 
     public function rules(): array
