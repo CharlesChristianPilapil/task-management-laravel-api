@@ -29,6 +29,48 @@ class UserSeeder extends Seeder
                 'password' => 'password123',
                 'role' => UserRole::TeamMember,
             ],
+            [
+                'name' => 'Engineering Member 2',
+                'email' => 'eng.member2@mailinator.com',
+                'password' => 'password123',
+                'role' => UserRole::TeamMember,
+            ],
+            [
+                'name' => 'Engineering Member 3',
+                'email' => 'eng.member3@mailinator.com',
+                'password' => 'password123',
+                'role' => UserRole::TeamMember,
+            ],
+            [
+                'name' => 'Marketing Lead',
+                'email' => 'marketing.lead@mailinator.com',
+                'password' => 'password123',
+                'role' => UserRole::TeamMember,
+            ],
+            [
+                'name' => 'Marketing Member 1',
+                'email' => 'marketing.member1@mailinator.com',
+                'password' => 'password123',
+                'role' => UserRole::TeamMember,
+            ],
+            [
+                'name' => 'Marketing Member 2',
+                'email' => 'marketing.member2@mailinator.com',
+                'password' => 'password123',
+                'role' => UserRole::TeamMember,
+            ],
+            [
+                'name' => 'Sales Lead',
+                'email' => 'sales.lead@mailinator.com',
+                'password' => 'password123',
+                'role' => UserRole::TeamMember,
+            ],
+            [
+                'name' => 'Sales Member 1',
+                'email' => 'sales.member1@mailinator.com',
+                'password' => 'password123',
+                'role' => UserRole::TeamMember,
+            ],
         ];
 
         foreach ($users as $data) {
