@@ -8,6 +8,7 @@ use App\Contracts\Repositories\UserRepositoryInterface;
 use App\Repositories\TaskRepository;
 use App\Repositories\TeamRepository;
 use App\Repositories\UserRepository;
+use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\ServiceProvider;
 use PHPOpenSourceSaver\JWTAuth\JWTGuard;
 
@@ -34,5 +35,12 @@ class AppServiceProvider extends ServiceProvider
             JWTGuard::class,
             fn ($app) => $app['auth']->guard('api'),
         );
+    }
+
+    public function boot(UrlGenerator $url): void
+    {
+        if (env('APP_ENV') === 'production') {
+            $url->forceScheme('https');
+        }
     }
 }
