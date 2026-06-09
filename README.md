@@ -39,21 +39,21 @@ Primary REST API for the **Task Management & Analytics Platform**. Built with **
 
 ## Production note (Render)
 
-> **Important:** On the current Render deployment, **SMTP mail is disabled** on both services, and **cron jobs are disabled** on the Node.js service.
+> **Important:** Email notifications and scheduled cron jobs are **fully implemented and configured** in this project. On **Render’s free tier**, the platform **restricts outbound SMTP** and **does not support reliable in-process cron / background workers** — so those features do not run in production even though the code and env vars are set up correctly.
 
-| Feature | Render status | Local dev |
-|---------|---------------|-----------|
-| Laravel mail (`MAIL_MAILER`) | **`log`** — emails written to logs, not sent | `log` by default; set `smtp` to send via Laravel |
-| Node.js SMTP (Nodemailer) | **Disabled** — no Gmail credentials configured | Set `EMAIL_USER` / `EMAIL_PASS` in Node `.env` |
-| Node.js cron jobs | **Disabled** (`CRON_ENABLED=false`) | Enabled with `CRON_ENABLED=true` |
+| Feature | Render free tier | Local dev |
+|---------|------------------|-----------|
+| Node.js SMTP (Nodemailer) | Configured (`EMAIL_USER` / `EMAIL_PASS`); **Render blocks outbound SMTP** on free tier | Sends via Gmail app password |
+| Node.js cron jobs | Configured (`CRON_ENABLED=true`); **free-tier web services spin down** and cannot run cron reliably | Runs via in-process `node-cron` |
+| Laravel → Node notification calls | Works — Laravel POSTs to Node; Node returns `202 Accepted` | Same |
 
-**Impact on Render**
+**Impact on Render free tier**
 
-- Laravel still calls the Node.js notification endpoint when tasks are assigned or updated; Node returns `202 Accepted` and queues the job.
-- No emails are actually delivered because SMTP is not configured on Node.js.
-- Scheduled jobs (daily digest, deadline reminders, task cleanup) do not run.
+- Task assign / status-change flows still hit the Node notification endpoint successfully.
+- **No emails are delivered** — blocked by Render’s free-tier SMTP restrictions, not missing app configuration.
+- **Scheduled jobs do not run** (daily digest, deadline reminders, task cleanup) — free tier has no persistent background worker; services may also spin down when idle.
 
-All notification and scheduler **logic is implemented and testable locally**. See the [Node.js README](https://github.com/your-username/task-management-node-services#production-note-render) for re-enable steps.
+Verify the full flow locally, or use a **paid Render plan**, **external cron** ([cron-job.org](https://cron-job.org) → `POST /api/cron/*`), and/or a **transactional email provider** (SendGrid, Resend, etc.) for production delivery. See the [Node.js README](https://github.com/your-username/task-management-node-services#production-note-render).
 
 ---
 
@@ -550,10 +550,9 @@ php artisan test
    - `APP_KEY`, `JWT_SECRET`, `INTERNAL_SERVICE_KEY`
    - `NODE_SERVICE_URL=https://task-management-node-services-g5ie.onrender.com`
    - `APP_ENV=production`, `APP_DEBUG=false`
-   - `MAIL_MAILER=log` *(current Render config — SMTP not used)*
 4. Deploy — the startup script runs `composer install`, caches config/routes, and executes `php artisan migrate --force`.
 
-> **Note:** The companion Node.js service on Render has cron and SMTP disabled. Task notification HTTP calls succeed, but emails and scheduled jobs do not run until those features are re-enabled on Node.js.
+> **Note:** Notification and cron logic is configured in the Node.js service. On Render **free tier**, outbound email and scheduled jobs are blocked by platform limits — not by missing env vars. See [Production note (Render)](#production-note-render).
 5. Seed production data (one-time):
 
    ```bash
@@ -579,7 +578,7 @@ php artisan test
 |---------|----------|
 | `401 Unauthorized` on all routes | Verify JWT is sent as `Bearer <token>`; check `JWT_SECRET` matches Node.js |
 | Notifications not sent (local) | Confirm Node.js is running; check `NODE_SERVICE_URL`, `INTERNAL_SERVICE_KEY`, and Node `EMAIL_*` vars |
-| Notifications not sent (Render) | Expected if Node SMTP is disabled; Laravel still queues the HTTP call — see [Production note (Render)](#production-note-render) |
+| Notifications not sent (Render) | Expected on Render **free tier** — SMTP is blocked by the platform; Laravel still queues the HTTP call — see [Production note (Render)](#production-note-render) |
 | `SQLSTATE` connection errors | Verify `DB_*` vars; ensure database exists and is reachable |
 | `500` after deploy | Check `storage/` and `bootstrap/cache/` are writable; run `php artisan config:clear` |
 | Migration failures | Run `php artisan migrate:fresh --seed` on a fresh database (dev only) |
